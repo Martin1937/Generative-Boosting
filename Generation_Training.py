@@ -10,15 +10,7 @@ from sklearn.metrics import mean_squared_error
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 #generate synthetic data and train LSTM, finally evaluate it
-def cal(train_data,train_label,test_data,test_label,vali_data,vali_label,window_size,Feature,time_gap):
-
-	max_val = np.max(train_label)
-	min_val = np.min(train_label)
-
-	train_label = np.reshape(train_label,(-1,1)).astype("float32")
-	scaler = MinMaxScaler(feature_range=(0,1))
-	train_label = scaler.fit_transform(train_label)
-
+def cal(train_data,train_label,test_data,test_label,vali_data,vali_label,window_size,Feature,time_gap,min_val,max_val):
 	count_train, count_test, count_vali = train_data.shape[0], test_data.shape[0], vali_data.shape[0]
 
 	for gen in range(0,1):
@@ -65,7 +57,7 @@ def cal(train_data,train_label,test_data,test_label,vali_data,vali_label,window_
 			model_1.add(LSTM(1,input_shape=(window_size,1),activation='sigmoid',return_sequences=False,kernel_initializer='random_uniform',
 	                	bias_initializer='random_uniform'))
 			model_1.compile(optimizer='Adam',loss='mean_squared_error',metrics=['mae'])
-			model_1.fit(vali_feature_all,vali_label_temp,epochs=100, batch_size=20,verbose=1)
+			model_1.fit(vali_feature_all,vali_label_temp,epochs=1, batch_size=20,verbose=1)
 			result = model_1.predict(test_feature_all)
 			result_all.append(result)
 			result_test = model_1.predict(test_feature_all_test)
@@ -124,16 +116,14 @@ def cal(train_data,train_label,test_data,test_label,vali_data,vali_label,window_
 	model.add(LSTM(1,input_shape=(window_size,Feature),activation='sigmoid',return_sequences=False,kernel_initializer='zeros',
 	                bias_initializer='zeros'))
 	model.compile(optimizer='Adam',loss='mean_squared_error',metrics=['mae'])
-	model.fit(train_data,train_label,epochs=100, batch_size=20,verbose=1)
+	model.fit(train_data,train_label,epochs=1, batch_size=20,verbose=1)
 
 	test_label = np.reshape(test_label,(count_test,1))
-
-	y_pred = model.predict(test_data)
-	reg_pred = y_pred*(max_val-min_val)+min_val
-
-	error = mean_squared_error(reg_pred, test_label)
-	mae = np.mean(np.abs(test_label - reg_pred)/test_label) * 100
-
-	print("MSE is "+str(error)+" MAE is "+str(mae))
+	pred_result = model.predict(test_data)
+	pred_result = pred_result *(max_val - min_val) + min_val
+	test_label = test_label *(max_val - min_val) + min_val
+	error = mean_squared_error(pred_result,test_label)
+	mae_error = np.mean(np.abs((pred_result-test_label)/test_label))*100
+	print("Mean Square Error is "+str(error)+"MAE is "+str(mae_error))
 
 	return 0
