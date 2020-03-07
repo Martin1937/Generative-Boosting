@@ -41,10 +41,10 @@ def gen(window_size,time_gap,MI_split):
 
 	#normalize test & vali data using the min & max value obtained above
 	test_data = test_data.astype("float32")
-	vali_data = vali_data.astype("float32")
+	#vali_data = vali_data.astype("float32")
 	for col in range(0,test_data.shape[1]):
 		test_data[:,col] = (test_data[:,col] - min_value[col])/(max_value[col] - min_value[col])
-		vali_data[:,col] = (vali_data[:,col] - min_value[col])/(max_value[col] - min_value[col])
+		#vali_data[:,col] = (vali_data[:,col] - min_value[col])/(max_value[col] - min_value[col])
 
 	vali_data_p3 = []
 	vali_data_label_p3 = []
